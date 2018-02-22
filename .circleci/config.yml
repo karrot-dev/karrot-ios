@@ -8,4 +8,4 @@ jobs:
     steps:
       - checkout
       - run:
-          command: echo Hello World :)
+          command: echo Hello World.
