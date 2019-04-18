@@ -1,0 +1,95 @@
+fastlane_version "2.68.2"
+
+default_platform :ios
+
+platform :ios do
+
+  before_all do
+    # ENV["SLACK_URL"] = "https://hooks.slack.com/services/..."
+  end
+
+  desc "Submit a new Beta Build to Apple TestFlight"
+  lane :beta do
+    # Update version from package.json
+    package = load_json(json_path: "../package.json")
+    infoPlist = "platforms/ios/Karrot Dev/Karrot Dev-Info.plist"
+    set_info_plist_value(
+      path: infoPlist,
+      key: "CFBundleShortVersionString",
+      value: package["version"]
+    )
+    # Update build version from file
+    build = load_json(json_path: "build_version.json")
+    puts "Set CFBundleVersion to #{build["ios"]}"
+    set_info_plist_value(
+      path: infoPlist,
+      key: "CFBundleVersion",
+      value: build["ios"]
+    )
+
+    match(
+      username: ENV['IOS_APPLE_ID'],
+      git_url: ENV['MATCH_GIT_REPO'],
+      type: "appstore",
+      readonly: true
+    )
+    pem(
+      username: ENV['IOS_APPLE_ID'],
+      save_private_key: true,
+    )
+
+    disable_automatic_code_signing(
+      path: ENV['IOS_PROJECT']
+    )
+
+    build_app(
+      workspace: ENV['IOS_WORKSPACE'],
+      export_xcargs: "-allowProvisioningUpdates"
+    )
+
+    # enable_automatic_code_signing(
+    #   path: ENV['IOS_PROJECT']
+    # )
+
+    upload_to_testflight(
+      username: ENV['IOS_APPLE_ID'],
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Deploy a new version to the App Store"
+  lane :release do
+    match(
+      username: ENV['IOS_APPLE_ID'],
+      git_url: ENV['MATCH_GIT_REPO'],
+      type: "appstore",
+      readonly: true
+    )
+    cordova(platform: 'ios')
+    upload_to_app_store(
+      ipa: ENV['CORDOVA_IOS_RELEASE_BUILD_PATH'],
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  # You can define as many lanes as you want
+
+  after_all do |lane|
+    # This block is called, only if the executed lane was successful
+
+    # slack(
+    #   message: "Successfully deployed new App Update."
+    # )
+  end
+
+  error do |lane, exception|
+    # slack(
+    #   message: exception.message,
+    #   success: false
+    # )
+  end
+end
+
+# Local Variables:
+# mode: ruby
+# End:

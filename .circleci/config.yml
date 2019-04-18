@@ -1,11 +1,83 @@
+ios-defaults: &ios-defaults
+  working_directory: ~/repo
+  macos:
+    xcode: "9.3.0"
+  shell: /bin/bash --login -eo pipefail
+
+prepare-build-ios: &prepare-build-ios
+  command: |
+    rm -f cordova/www
+    mv dist-app-${CORDOVA_ENV} cordova/www
+    cd ~/repo/cordova
+    rm -f config/current
+    ln -s "${CORDOVA_ENV}" config/current
+    cordova platform add ios
+
 version: 2
 jobs:
-  build:
-
-    macos:
-      xcode: "8.3.3"
-
+  install-fastlane-dependencies:
+    <<: *ios-defaults
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          key: 1-fastlane-{{ checksum "cordova/Gemfile.lock" }}
       - run:
-          command: echo Hello World.
+          name: Install gems
+          command: |
+            cd ~/repo/cordova/
+            bundle check || bundle install --path vendor/cordova
+      - save_cache:
+          paths:
+            - ~/vendor/cordova
+          key: 1-fastlane-{{ checksum "cordova/Gemfile.lock" }}
+
+  build-ios-dev:
+    <<: *ios-defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Install cordova
+          command: yarn global add cordova
+      - run:
+          <<: *prepare-build-ios
+          name: platform add ios dev
+          environment:
+            CORDOVA_ENV: dev
+      - run:
+          name: Build iOS app
+          command: |
+            cd ~/repo/cordova/
+            cordova build ios
+
+  deploy-ios-dev:
+    <<: *ios-defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: yarn global add cordova
+      - run:
+          <<: *prepare-build-ios
+          environment:
+            CORDOVA_ENV: dev
+      - run:
+          command: |
+            set -x
+            export LC_ALL=C.UTF-8
+            export LANG=C.UTF-8
+            cd ~/repo/cordova/
+            bundle install
+            bundle exec fastlane beta
+
+workflows:
+  version: 2
+  all-the-things:
+    jobs:
+      - build-ios-dev:
+          requires:
+            - build-cordova-dev
+            - install-fastlane-dependencies
