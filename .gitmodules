@@ -1,0 +1,3 @@
+[submodule "karrot-frontend"]
+	path = karrot-frontend
+	url = https://github.com/yunity/karrot-frontend.git
