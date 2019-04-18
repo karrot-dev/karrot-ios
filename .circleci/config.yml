@@ -1,7 +1,9 @@
 ios-defaults: &ios-defaults
   working_directory: ~/repo
   macos:
-    xcode: "9.3.0"
+    xcode: "10.2.0"
+  environment:
+    FL_OUTPUT_DIR: output
   shell: /bin/bash --login -eo pipefail
 
 prepare-build-ios: &prepare-build-ios
@@ -15,6 +17,24 @@ prepare-build-ios: &prepare-build-ios
 
 version: 2
 jobs:
+  install-dependencies:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          - v1-dependencies-
+      - run: yarn
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - .
+
   install-fastlane-dependencies:
     <<: *ios-defaults
     steps:
@@ -32,6 +52,21 @@ jobs:
           paths:
             - ~/vendor/cordova
           key: 1-fastlane-{{ checksum "cordova/Gemfile.lock" }}
+
+  build-cordova-dev:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: build cordova app
+          command: |
+            yarn build:cordova:dev
+            mv dist dist-app-dev
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - dist-app-dev
 
   build-ios-dev:
     <<: *ios-defaults
@@ -77,6 +112,11 @@ workflows:
   version: 2
   all-the-things:
     jobs:
+      - install-dependencies
+      - install-fastlane-dependencies
+      - build-cordova-dev:
+          requires:
+            - install-dependencies
       - build-ios-dev:
           requires:
             - build-cordova-dev
