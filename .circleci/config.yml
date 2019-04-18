@@ -1,110 +1,93 @@
 ios-defaults: &ios-defaults
-  working_directory: ~/repo
   macos:
     xcode: "10.2.0"
+  working_directory: ~/project
   environment:
     FL_OUTPUT_DIR: output
+    FRONTEND_DIR: ~/project/karrot-frontend
+    CORDOVA_DIR: ~/project/karrot-frontend/cordova
   shell: /bin/bash --login -eo pipefail
 
 prepare-build-ios: &prepare-build-ios
   command: |
-    rm -f cordova/www
-    mv dist-app-${CORDOVA_ENV} cordova/www
-    cd ~/repo/cordova
-    rm -f config/current
-    ln -s "${CORDOVA_ENV}" config/current
+    cd ${CORDOVA_DIR}
+    [ -x www ] && rm -f www
+    ln -s dist-app-${CORDOVA_ENV} www
+    cd ${CORDOVA_DIR}/config
+    [ -x current ] rm -f current
+    ln -s "${CORDOVA_ENV}" current
     cordova platform add ios
 
 version: 2
 jobs:
   install-dependencies:
-    <<: *defaults
     steps:
       - checkout
+      - run: git submodule sync
+      - run: git submodule update --init
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "package.json" }}
+          - v1-dependencies-{{ checksum "karrot-frontend/package.json" }}
           - v1-dependencies-
       - run: yarn
       - save_cache:
           paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
-      - persist_to_workspace:
-          root: ~/repo
-          paths:
-            - .
+            - karrot-frontend/node_modules
+          key: v1-dependencies-{{ checksum "karrot-frontend/package.json" }}
 
   install-fastlane-dependencies:
     <<: *ios-defaults
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/
       - restore_cache:
-          key: 1-fastlane-{{ checksum "cordova/Gemfile.lock" }}
+          key: 1-fastlane-{{ checksum "Gemfile.lock" }}
       - run:
           name: Install gems
-          command: |
-            cd ~/repo/cordova/
-            bundle check || bundle install --path vendor/cordova
+          command: bundle check || bundle install --path vendor/cordova
       - save_cache:
           paths:
             - ~/vendor/cordova
-          key: 1-fastlane-{{ checksum "cordova/Gemfile.lock" }}
-
-  build-cordova-dev:
-    <<: *defaults
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: build cordova app
-          command: |
-            yarn build:cordova:dev
-            mv dist dist-app-dev
-      - persist_to_workspace:
-          root: ~/repo
-          paths:
-            - dist-app-dev
+          key: 1-fastlane-{{ checksum "Gemfile.lock" }}
 
   build-ios-dev:
     <<: *ios-defaults
+    environment:
+      FASTLANE_LANE: beta
     steps:
       - checkout
-      - attach_workspace:
-          at: .
       - run:
           name: Install cordova
-          command: yarn global add cordova
+          command: yarn global add cordova@8.1.2
+      - run:
+          name: Build cordova app dev
+          command: |
+            cd ${CORDOVA_DIR}
+            yarn build:cordova:dev
+            mv dist dist-app-dev
       - run:
           <<: *prepare-build-ios
-          name: platform add ios dev
+          name: Cordova platform add iOS dev
           environment:
             CORDOVA_ENV: dev
       - run:
-          name: Build iOS app
-          command: |
-            cd ~/repo/cordova/
-            cordova build ios
+          name: Fastlane
+          command: bundle exec fastlane $FASTLANE_LANE
 
   deploy-ios-dev:
     <<: *ios-defaults
     steps:
       - checkout
-      - attach_workspace:
-          at: .
-      - run: yarn global add cordova
+      - run:
+          name: Install cordova
+          command: yarn global add cordova
       - run:
           <<: *prepare-build-ios
+          name: Cordova platform add iOS prod
           environment:
-            CORDOVA_ENV: dev
+            CORDOVA_ENV: prod
       - run:
           command: |
-            set -x
-            export LC_ALL=C.UTF-8
-            export LANG=C.UTF-8
-            cd ~/repo/cordova/
+            cd ${CORDOVA_DIR}
             bundle install
             bundle exec fastlane beta
 
@@ -114,10 +97,7 @@ workflows:
     jobs:
       - install-dependencies
       - install-fastlane-dependencies
-      - build-cordova-dev:
-          requires:
-            - install-dependencies
       - build-ios-dev:
           requires:
-            - build-cordova-dev
+            - install-dependencies
             - install-fastlane-dependencies

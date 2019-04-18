@@ -37,17 +37,20 @@ platform :ios do
     )
     pem(
       username: ENV['IOS_APPLE_ID'],
-      save_private_key: true,
     )
 
-    disable_automatic_code_signing(
-      path: ENV['IOS_PROJECT']
-    )
+    Dir.chdir('../karrot-frontend/cordova') do
+      sh('cordova build ios')
+    end
 
-    build_app(
-      workspace: ENV['IOS_WORKSPACE'],
-      export_xcargs: "-allowProvisioningUpdates"
-    )
+    # disable_automatic_code_signing(
+    #   path: ENV['IOS_PROJECT']
+    # )
+
+    # build_app(
+    #   workspace: ENV['IOS_WORKSPACE'],
+    #   export_xcargs: "-allowProvisioningUpdates"
+    # )
 
     # enable_automatic_code_signing(
     #   path: ENV['IOS_PROJECT']
