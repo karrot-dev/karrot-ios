@@ -1,31 +1,33 @@
-fastlane_version "2.68.2"
-
 default_platform :ios
 
 platform :ios do
 
   before_all do
-    # ENV["SLACK_URL"] = "https://hooks.slack.com/services/..."
+    setup_circle_ci
+  end
+
+  private_lane :update_version do
+    infoPlist = "karrot-frontend/cordova/platforms/ios/Karrot Dev/Karrot Dev-Info.plist"
+    bv = load_json(json_path: "build_version.json")
+    puts "Set Version to #{bv["version"]}"
+    # Update version from file
+    set_info_plist_value(
+      path: infoPlist,
+      key: "CFBundleShortVersionString",
+      value: bv["version"]
+    )
+    puts "Set Build version to #{bv["build"]}"
+    # Update build version from file
+    set_info_plist_value(
+      path: infoPlist,
+      key: "CFBundleVersion",
+      value: bv["build"]
+    )
   end
 
   desc "Submit a new Beta Build to Apple TestFlight"
   lane :beta do
-    # Update version from package.json
-    package = load_json(json_path: "../package.json")
-    infoPlist = "platforms/ios/Karrot Dev/Karrot Dev-Info.plist"
-    set_info_plist_value(
-      path: infoPlist,
-      key: "CFBundleShortVersionString",
-      value: package["version"]
-    )
-    # Update build version from file
-    build = load_json(json_path: "build_version.json")
-    puts "Set CFBundleVersion to #{build["ios"]}"
-    set_info_plist_value(
-      path: infoPlist,
-      key: "CFBundleVersion",
-      value: build["ios"]
-    )
+    update_version
 
     match(
       username: ENV['IOS_APPLE_ID'],
