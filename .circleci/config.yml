@@ -16,28 +16,11 @@ prepare-build-ios: &prepare-build-ios
     cd ${CORDOVA_DIR}/config
     rm -f current
     ln -s "${CORDOVA_ENV}" current
+    cd ${CORDOVA_DIR}
     cordova platform add ios
 
 version: 2
 jobs:
-  install-dependencies:
-    <<: *ios-defaults
-    steps:
-      - checkout
-      - restore_cache:
-          key: v1-frontend-dependencies-{{ checksum "karrot-frontend/package.json" }}
-      - run: git submodule sync
-      - run: git submodule update --init
-      - run:
-          name: Install packages for karrot-frontend
-          command: |
-            cd ${FRONTEND_DIR}
-            yarn
-      - save_cache:
-          paths:
-            - karrot-frontend
-          key: v1-frontend-dependencies-{{ checksum "karrot-frontend/package.json" }}
-
   install-fastlane-dependencies:
     <<: *ios-defaults
     steps:
@@ -61,17 +44,11 @@ jobs:
       - checkout
       - run: git submodule sync
       - run: git submodule update --init
-      - restore_cache:
-          key: v1-frontend-dependencies-{{ checksum "karrot-frontend/package.json" }}
       - run:
           name: Install packages for karrot-frontend
           command: |
             cd ${FRONTEND_DIR}
             yarn
-      - save_cache:
-          paths:
-            - karrot-frontend/node_modules
-          key: v1-frontend-dependencies-{{ checksum "karrot-frontend/package.json" }}
       - run:
           name: Install cordova
           command: yarn global add cordova@8.1.2
