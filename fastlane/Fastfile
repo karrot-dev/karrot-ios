@@ -53,11 +53,6 @@ platform :ios do
       path: ENV['IOS_PROJECT']
     )
 
-    upgrade_super_old_xcode_project(
-      path: ENV['IOS_PROJECT'],
-      team_id: team_id
-    )
-
     gym(
       workspace: ENV['IOS_WORKSPACE']
     )
