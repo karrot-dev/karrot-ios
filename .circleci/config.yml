@@ -35,9 +35,7 @@ jobs:
           command: |
             cd ${FRONTEND_DIR}
             yarn
-      - run:
-          name: Install cordova
-          command: yarn global add cordova@8.1.2
+      - run: yarn global add cordova@8.1.2
       - run:
           name: Build cordova app dev
           command: |
@@ -49,12 +47,8 @@ jobs:
           name: Cordova platform add iOS dev
           environment:
             CORDOVA_ENV: dev
-      - run:
-          name: Install gems
-          command: bundle check || bundle install
-      - run:
-          name: Fastlane
-          command: bundle exec fastlane beta
+      - run: bundle install
+      - run: bundle exec fastlane beta
 
   deploy-ios-dev:
     <<: *ios-defaults
@@ -78,4 +72,4 @@ workflows:
   version: 2
   all-the-things:
     jobs:
-      - build-ios-dev:
+      - build-ios-dev
