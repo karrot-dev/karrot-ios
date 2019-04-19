@@ -38,21 +38,17 @@ platform :ios do
       sh('cordova build ios')
     end
 
-    # Overwrite project's version and build number
-    update_version(
-      infoPlist: "karrot-frontend/cordova/platforms/ios/Karrot Dev/Karrot Dev-Info.plist"
-    )
-
     team_id = CredentialsManager::AppfileConfig.try_fetch_value(:team_id)
     upgrade_super_old_xcode_project(
       path: ENV['IOS_PROJECT'],
       team_id: team_id
     )
 
-    # Must diable first and setup team id and enable automatic again
-    disable_automatic_code_signing(
-      path: ENV['IOS_PROJECT']
+    # Overwrite project's version and build number
+    update_version(
+      infoPlist: "karrot-frontend/cordova/platforms/ios/Karrot Dev/Karrot Dev-Info.plist"
     )
+
     update_project_team(
       path: ENV['IOS_PROJECT'],
       teamid: team_id
