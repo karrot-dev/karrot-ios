@@ -35,9 +35,6 @@ platform :ios do
       type: "appstore",
       readonly: true
     )
-    pem(
-      username: ENV['IOS_APPLE_ID'],
-    )
 
     Dir.chdir('../karrot-frontend/cordova') do
       sh('cordova build ios')
