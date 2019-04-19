@@ -69,7 +69,7 @@ jobs:
       - run:
           name: Build cordova app dev
           command: |
-            cd ${CORDOVA_DIR}
+            cd ${FRONTEND_DIR}
             yarn build:cordova:dev
             mv dist dist-app-dev
       - run:
