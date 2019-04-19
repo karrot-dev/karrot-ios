@@ -30,9 +30,7 @@ jobs:
       - run: git submodule sync
       - run: git submodule update --init
       - restore_cache:
-          keys:
-          - v1-frontend-dependencies-{{ checksum "karrot-frontend/package.json" }}
-          - v1-dependencies-
+          key: v1-frontend-dependencies-{{ checksum "karrot-frontend/package.json" }}
       - run:
           name: Install packages for karrot-frontend
           command: |
@@ -61,6 +59,10 @@ jobs:
     <<: *ios-defaults
     steps:
       - checkout
+      - run: git submodule sync
+      - run: git submodule update --init
+      - restore_cache:
+          key: v1-frontend-dependencies-{{ checksum "karrot-frontend/package.json" }}
       - run:
           name: Install cordova
           command: yarn global add cordova@8.1.2
