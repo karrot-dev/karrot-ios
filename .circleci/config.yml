@@ -21,6 +21,7 @@ prepare-build-ios: &prepare-build-ios
 version: 2
 jobs:
   install-dependencies:
+    <<: *ios-defaults
     steps:
       - checkout
       - run: git submodule sync
