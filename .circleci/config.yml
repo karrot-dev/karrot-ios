@@ -55,8 +55,6 @@ jobs:
 
   build-ios-dev:
     <<: *ios-defaults
-    environment:
-      FASTLANE_LANE: beta
     steps:
       - checkout
       - run:
@@ -75,7 +73,7 @@ jobs:
             CORDOVA_ENV: dev
       - run:
           name: Fastlane
-          command: bundle exec fastlane $FASTLANE_LANE
+          command: bundle exec fastlane beta
 
   deploy-ios-dev:
     <<: *ios-defaults
