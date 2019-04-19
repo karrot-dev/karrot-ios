@@ -12,7 +12,7 @@ prepare-build-ios: &prepare-build-ios
   command: |
     cd ${CORDOVA_DIR}
     rm -f www
-    ln -s dist-app-${CORDOVA_ENV} www
+    ln -s ../dist-app-${CORDOVA_ENV} www
     cd ${CORDOVA_DIR}/config
     rm -f current
     ln -s "${CORDOVA_ENV}" current
