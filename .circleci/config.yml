@@ -49,6 +49,8 @@ jobs:
             CORDOVA_ENV: dev
       - run: bundle install
       - run: bundle exec fastlane beta
+      - store_artifacts:
+          path: karrot-frontend/cordova/platforms/ios/build/emulator/
 
   deploy-ios-dev:
     <<: *ios-defaults
