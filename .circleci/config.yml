@@ -11,10 +11,10 @@ ios-defaults: &ios-defaults
 prepare-build-ios: &prepare-build-ios
   command: |
     cd ${CORDOVA_DIR}
-    [ -x www ] && rm -f www
+    rm -f www
     ln -s dist-app-${CORDOVA_ENV} www
     cd ${CORDOVA_DIR}/config
-    [ -x current ] && rm -f current
+    rm -f current
     ln -s "${CORDOVA_ENV}" current
     cordova platform add ios
 
@@ -23,14 +23,11 @@ jobs:
   install-dependencies:
     <<: *ios-defaults
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "83:43:65:26:c5:33:9c:7a:e8:13:a9:73:35:36:4f:35"
       - checkout
-      - run: git submodule sync
-      - run: git submodule update --init
       - restore_cache:
           key: v1-frontend-dependencies-{{ checksum "karrot-frontend/package.json" }}
+      - run: git submodule sync
+      - run: git submodule update --init
       - run:
           name: Install packages for karrot-frontend
           command: |
@@ -58,10 +55,22 @@ jobs:
   build-ios-dev:
     <<: *ios-defaults
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "83:43:65:26:c5:33:9c:7a:e8:13:a9:73:35:36:4f:35"
       - checkout
       - run: git submodule sync
       - run: git submodule update --init
       - restore_cache:
+          key: v1-frontend-dependencies-{{ checksum "karrot-frontend/package.json" }}
+      - run:
+          name: Install packages for karrot-frontend
+          command: |
+            cd ${FRONTEND_DIR}
+            yarn
+      - save_cache:
+          paths:
+            - karrot-frontend/node_modules
           key: v1-frontend-dependencies-{{ checksum "karrot-frontend/package.json" }}
       - run:
           name: Install cordova
@@ -103,9 +112,7 @@ workflows:
   version: 2
   all-the-things:
     jobs:
-      - install-dependencies
       - install-fastlane-dependencies
       - build-ios-dev:
           requires:
-            - install-dependencies
             - install-fastlane-dependencies
