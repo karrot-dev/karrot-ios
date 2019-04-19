@@ -14,7 +14,7 @@ prepare-build-ios: &prepare-build-ios
     [ -x www ] && rm -f www
     ln -s dist-app-${CORDOVA_ENV} www
     cd ${CORDOVA_DIR}/config
-    [ -x current ] rm -f current
+    [ -x current ] && rm -f current
     ln -s "${CORDOVA_ENV}" current
     cordova platform add ios
 
