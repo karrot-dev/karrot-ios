@@ -1,11 +1,11 @@
 ios-defaults: &ios-defaults
   macos:
     xcode: "10.2.0"
-  working_directory: ~/project
+  working_directory: /Users/distiller/project
   environment:
     FL_OUTPUT_DIR: output
-    FRONTEND_DIR: ~/project/karrot-frontend
-    CORDOVA_DIR: ~/project/karrot-frontend/cordova
+    FRONTEND_DIR: /Users/distiller/project/karrot-frontend
+    CORDOVA_DIR: /Users/distiller/project/karrot-frontend/cordova
   shell: /bin/bash --login -eo pipefail
 
 prepare-build-ios: &prepare-build-ios
