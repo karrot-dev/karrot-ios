@@ -31,13 +31,17 @@ jobs:
       - run: git submodule update --init
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "karrot-frontend/package.json" }}
+          - v1-frontend-dependencies-{{ checksum "karrot-frontend/package.json" }}
           - v1-dependencies-
-      - run: yarn
+      - run:
+          name: Install packages for karrot-frontend
+          command: |
+            cd ${FRONTEND_DIR}
+            yarn
       - save_cache:
           paths:
-            - karrot-frontend/node_modules
-          key: v1-dependencies-{{ checksum "karrot-frontend/package.json" }}
+            - karrot-frontend
+          key: v1-frontend-dependencies-{{ checksum "karrot-frontend/package.json" }}
 
   install-fastlane-dependencies:
     <<: *ios-defaults
