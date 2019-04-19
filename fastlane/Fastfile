@@ -6,8 +6,8 @@ platform :ios do
     setup_circle_ci
   end
 
-  private_lane :update_version do
-    infoPlist = "karrot-frontend/cordova/platforms/ios/Karrot Dev/Karrot Dev-Info.plist"
+  private_lane :update_version do |options|
+    infoPlist = options[:infoPlist]
     bv = load_json(json_path: "build_version.json")
     puts "Set Version to #{bv["version"]}"
     # Update version from file
@@ -39,7 +39,9 @@ platform :ios do
     end
 
     # Overwrite project's version and build number
-    update_version
+    update_version(
+      infoPlist: "karrot-frontend/cordova/platforms/ios/Karrot Dev/Karrot Dev-Info.plist"
+    )
 
     # Must diable first and setup team id and enable automatic again
     disable_automatic_code_signing(
