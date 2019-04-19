@@ -63,6 +63,8 @@ jobs:
           name: Cordova platform add iOS dev
           environment:
             CORDOVA_ENV: dev
+      - restore_cache:
+          key: 1-fastlane-{{ checksum "Gemfile.lock" }}
       - run:
           name: Fastlane
           command: bundle exec fastlane beta
