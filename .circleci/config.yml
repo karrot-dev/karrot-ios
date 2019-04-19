@@ -21,20 +21,6 @@ prepare-build-ios: &prepare-build-ios
 
 version: 2
 jobs:
-  install-fastlane-dependencies:
-    <<: *ios-defaults
-    steps:
-      - checkout
-      - restore_cache:
-          key: 1-fastlane-{{ checksum "Gemfile.lock" }}
-      - run:
-          name: Install gems
-          command: bundle check || bundle install --path vendor/cordova
-      - save_cache:
-          paths:
-            - ~/vendor/cordova
-          key: 1-fastlane-{{ checksum "Gemfile.lock" }}
-
   build-ios-dev:
     <<: *ios-defaults
     steps:
@@ -63,8 +49,9 @@ jobs:
           name: Cordova platform add iOS dev
           environment:
             CORDOVA_ENV: dev
-      - restore_cache:
-          key: 1-fastlane-{{ checksum "Gemfile.lock" }}
+      - run:
+          name: Install gems
+          command: bundle check || bundle install
       - run:
           name: Fastlane
           command: bundle exec fastlane beta
@@ -91,7 +78,4 @@ workflows:
   version: 2
   all-the-things:
     jobs:
-      - install-fastlane-dependencies
       - build-ios-dev:
-          requires:
-            - install-fastlane-dependencies
