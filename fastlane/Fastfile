@@ -27,6 +27,8 @@ platform :ios do
 
   desc "Submit a new Beta Build to Apple TestFlight"
   lane :beta do
+    team_id = CredentialsManager::AppfileConfig.try_fetch_value(:team_id)
+
     match(
       username: ENV['IOS_APPLE_ID'],
       git_url: ENV['MATCH_GIT_REPO'],
@@ -37,12 +39,6 @@ platform :ios do
     Dir.chdir('../karrot-frontend/cordova') do
       sh('cordova build ios')
     end
-
-    team_id = CredentialsManager::AppfileConfig.try_fetch_value(:team_id)
-    upgrade_super_old_xcode_project(
-      path: ENV['IOS_PROJECT'],
-      team_id: team_id
-    )
 
     # Overwrite project's version and build number
     update_version(
@@ -55,6 +51,11 @@ platform :ios do
     )
     enable_automatic_code_signing(
       path: ENV['IOS_PROJECT']
+    )
+
+    upgrade_super_old_xcode_project(
+      path: ENV['IOS_PROJECT'],
+      team_id: team_id
     )
 
     gym(
