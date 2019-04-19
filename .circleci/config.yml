@@ -50,7 +50,7 @@ jobs:
       - run: bundle install
       - run: bundle exec fastlane beta
       - store_artifacts:
-          path: karrot-frontend/cordova/platforms/ios/build/emulator/
+          path: output
 
   deploy-ios-dev:
     <<: *ios-defaults

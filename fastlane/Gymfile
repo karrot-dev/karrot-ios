@@ -14,7 +14,7 @@
 
 export_options "./exportOptions.plist"
 
-output_directory "./"
+output_directory "./output"
 
 # export_options(
 #   method: "app-store",
@@ -23,4 +23,4 @@ output_directory "./"
 #   }
 # )
 
-# export_method "app-store"
+export_method "app-store"

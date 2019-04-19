@@ -27,8 +27,6 @@ platform :ios do
 
   desc "Submit a new Beta Build to Apple TestFlight"
   lane :beta do
-    update_version
-
     match(
       username: ENV['IOS_APPLE_ID'],
       git_url: ENV['MATCH_GIT_REPO'],
@@ -40,18 +38,25 @@ platform :ios do
       sh('cordova build ios')
     end
 
-    # disable_automatic_code_signing(
-    #   path: ENV['IOS_PROJECT']
-    # )
+    # Overwrite project's version and build number
+    update_version
 
-    # build_app(
-    #   workspace: ENV['IOS_WORKSPACE'],
-    #   export_xcargs: "-allowProvisioningUpdates"
-    # )
+    # Must diable first and setup team id and enable automatic again
+    disable_automatic_code_signing(
+      path: ENV['IOS_PROJECT']
+    )
+    team_id = CredentialsManager::AppfileConfig.try_fetch_value(:team_id)
+    update_project_team(
+      path: ENV['IOS_PROJECT'],
+      teamid: team_id
+    )
+    enable_automatic_code_signing(
+      path: ENV['IOS_PROJECT']
+    )
 
-    # enable_automatic_code_signing(
-    #   path: ENV['IOS_PROJECT']
-    # )
+    gym(
+      workspace: ENV['IOS_WORKSPACE']
+    )
 
     upload_to_testflight(
       username: ENV['IOS_APPLE_ID'],
