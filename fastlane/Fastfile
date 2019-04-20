@@ -25,6 +25,27 @@ platform :ios do
     )
   end
 
+  frontend_dir = '../karrot-frontend/'
+  cordova_dir = "#{frontend_dir}/cordova"
+
+  lane :prepare do |options|
+    prod = options[:prod] ? options[:prod] : 'dev'
+
+    Dir.chdir(frontend_dir) do
+      sh("yarn")
+      sh("yarn build:cordova:#{prod}")
+      sh("mv dist dist-app-#{prod}")
+    end
+
+    Dir.chdir(cordova_dir) do
+      sh("rm -f www")
+      sh("ln -s ../dist-app-#{prod} www")
+      sh("rm -f config/current")
+      sh("ln -s #{prod} config/current")
+      sh("cordova platform add ios")
+    end
+  end
+
   desc "Submit a new Beta Build to Apple TestFlight"
   lane :beta do
     team_id = CredentialsManager::AppfileConfig.try_fetch_value(:team_id)
