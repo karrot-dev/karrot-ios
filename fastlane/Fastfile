@@ -57,25 +57,31 @@ platform :ios do
       readonly: true
     )
 
-    Dir.chdir('../karrot-frontend/cordova') do
-      sh('cordova build ios')
+    profile = sigh(
+      username: ENV['IOS_APPLE_ID'],
+      development: true
+    )
+
+    Dir.chdir(cordova_dir) do
+      puts Dir.pwd
+      sh('cordova', 'build', 'ios',
+         '--packageType=app-store',
+         '--codeSignIdentity="iPhone Developer"',
+         "--developmentTeam=#{team_id}",
+         # '--automaticProvisioning=true',
+         "--provisioningProfile=#{profile}"
+        )
     end
 
-    # Overwrite project's version and build number
-    update_version(
-      infoPlist: "karrot-frontend/cordova/platforms/ios/Karrot Dev/Karrot Dev-Info.plist"
-    )
-
-    update_project_team(
-      path: ENV['IOS_PROJECT'],
-      teamid: team_id
-    )
-    enable_automatic_code_signing(
-      path: ENV['IOS_PROJECT']
-    )
+    project_dir = "#{cordova_dir}/platforms/ios"
+    project_name = 'Karrot Dev'
+    # # Overwrite project's version and build number
+    # update_version(
+    #   infoPlist: "#{project_dir}/#{project_name}/#{project_name}-Info.plist"
+    # )
 
     gym(
-      workspace: ENV['IOS_WORKSPACE']
+      workspace: "#{project_dir}/#{project_name}.xcworkspace"
     )
 
     upload_to_testflight(
